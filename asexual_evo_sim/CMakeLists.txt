@@ -8,11 +8,13 @@ project("asexual_sim")
 set(SOURCES
     ${IMGUI_SOURCES}
     "main.cpp"
+    "pch.h"
     "sim_app.cpp"
 	"sim_app.h"
-	"simple_render_system.cpp"
-    "simple_render_system.h"
-    "pch.h")
+	"creature_render_system.cpp"
+    "creature_render_system.h"
+    "simulator.h" 
+    "simulator.cpp" "frame_info.h")
 
 # Add source to this project's executable.
 add_executable (${PROJECT_NAME} ${SOURCES})

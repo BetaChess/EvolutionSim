@@ -7,6 +7,8 @@ project("renderer")
 
 set(SOURCES
     ${IMGUI_SOURCES}
+    "phm_buffer.cpp"
+    "phm_buffer.h"
     "phm_descriptor.cpp"
     "phm_descriptor.h"
     "phm_model.h" 

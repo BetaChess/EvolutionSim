@@ -12,6 +12,8 @@
 #include "phm_object.h"
 #include "phm_descriptor.h"
 
+#include "simulator.h"
+
 
 namespace evo
 {
@@ -41,9 +43,7 @@ namespace evo
 		ImGuiContext* imgui_context_;
 		ImGuiIO& io_;
 
-		std::vector<phm::Object> objects_; // TEMP
-
-		void loadObjects(); // TEMP
+		Simulator simulation_{};
 	};
 }
 

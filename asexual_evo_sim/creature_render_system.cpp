@@ -1,6 +1,6 @@
 #include "pch.h"
 
-#include "simple_render_system.h"
+#include "creature_render_system.h"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -16,35 +16,37 @@ namespace evo
 {
 	struct SimplePushConstantData
 	{
+		glm::vec4 position;
 		glm::mat4 transform{ 1.0f };
 		alignas(16) glm::vec3 color;
 	};
 
-	SimpleRenderSystem::SimpleRenderSystem(phm::Device& device, VkRenderPass renderPass)
+	CreatureRenderSystem::CreatureRenderSystem(phm::Device& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout)
 		: device_(device)
 	{
-		createPipelineLayout();
+		createPipelineLayout(globalSetLayout);
 		createPipeline(renderPass);
 	}
 
-	SimpleRenderSystem::~SimpleRenderSystem()
+	CreatureRenderSystem::~CreatureRenderSystem()
 	{
 		vkDestroyPipelineLayout(device_.device(), pipelineLayout_, nullptr);
 	}
 
 	// Self documenting
-	void SimpleRenderSystem::createPipelineLayout()
+	void CreatureRenderSystem::createPipelineLayout(VkDescriptorSetLayout globalSetLayout)
 	{
 		VkPushConstantRange pushConstantRange{};
 		pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 		pushConstantRange.offset = 0;
 		pushConstantRange.size = sizeof(SimplePushConstantData);
 
-		VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{};
+		std::vector<VkDescriptorSetLayout> descriptorSetLayouts{ globalSetLayout };
 
+		VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{};
 		pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		pipelineLayoutCreateInfo.setLayoutCount = 0;
-		pipelineLayoutCreateInfo.pSetLayouts = nullptr;
+		pipelineLayoutCreateInfo.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size());
+		pipelineLayoutCreateInfo.pSetLayouts = descriptorSetLayouts.data();
 		pipelineLayoutCreateInfo.pushConstantRangeCount = 1;
 		pipelineLayoutCreateInfo.pPushConstantRanges = &pushConstantRange;
 
@@ -54,7 +56,7 @@ namespace evo
 		}
 	}
 
-	void SimpleRenderSystem::createPipeline(VkRenderPass renderPass)
+	void CreatureRenderSystem::createPipeline(VkRenderPass renderPass)
 	{
 		assert(
 			pipelineLayout_ != nullptr &&
@@ -63,39 +65,53 @@ namespace evo
 
 		phm::PipelineConfigInfo pipelineConfig{};
 		phm::Pipeline::defaultPipelineConfigInfo(pipelineConfig);
+		pipelineConfig.attributeDescriptions.clear();
+		pipelineConfig.bindingDescriptions.clear();
+
 		pipelineConfig.renderPass = renderPass;
 		pipelineConfig.pipelineLayout = pipelineLayout_;
 
 		pipeline_ = std::make_unique<phm::Pipeline>(
 			device_,
-			"shaders/simple_shader.vert.spv",
-			"shaders/simple_shader.frag.spv",
+			"shaders/creature_shader.vert.spv",
+			"shaders/creature_shader.frag.spv",
 			pipelineConfig
 			);
 
 	}
 
-	void SimpleRenderSystem::renderObjects(VkCommandBuffer commandBuffer, const std::vector<phm::Object>& objects)
+	void CreatureRenderSystem::renderObjects(const FrameInfo& frameInfo, const std::vector<Simulator::Creature>& objects)
 	{
-		pipeline_->bind(commandBuffer);
+		pipeline_->bind(frameInfo.commandBuffer);
+
+		vkCmdBindDescriptorSets(
+			frameInfo.commandBuffer,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			pipelineLayout_,
+			0,
+			1,
+			&frameInfo.globalDescriptorSet,
+			0,
+			nullptr
+		);
 
 		for (auto& obj : objects)
 		{
 			SimplePushConstantData push{};
 			//push.offset = obj.transform.translation;
-			push.color = obj.color;
-			push.transform = obj.transform.mat4();
+			push.color = { 0.0f, 0.4f, 0.3f };
+			push.transform = obj.mat4();
+			push.position = glm::vec4(obj.position, 0, 0);
 
 			vkCmdPushConstants(
-				commandBuffer,
+				frameInfo.commandBuffer,
 				pipelineLayout_,
 				VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
 				0,
 				sizeof(SimplePushConstantData),
 				&push);
-			obj.model->bind(commandBuffer);
-			obj.model->draw(commandBuffer);
 
+			vkCmdDraw(frameInfo.commandBuffer, 6, 1, 0, 0);
 		}
 	}
 }
