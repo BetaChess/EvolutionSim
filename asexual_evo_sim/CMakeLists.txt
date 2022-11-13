@@ -7,8 +7,8 @@ project("asexual_sim")
 
 set(SOURCES
     "main.cpp"
-    "phm_app.cpp"
-	"phm_app.h"
+    "sim_app.cpp"
+	"sim_app.h"
 	"simple_render_system.cpp"
     "simple_render_system.h"
 )

@@ -1,5 +1,5 @@
-#ifndef PHM_APP_H
-#define PHM_APP_H
+#ifndef SIM_APP_H
+#define SIM_APP_H
 
 #include <memory>
 #include <vector>
@@ -9,7 +9,7 @@
 #include "phm_object.h"
 
 
-namespace phm
+namespace evo
 {
 	class Application
 	{
@@ -27,11 +27,11 @@ namespace phm
 		void run();
 
 	private:
-		Window window_{ WIDTH, HEIGHT, "Triangle" };
-		Device device_{ window_ };
-		Renderer renderer_{ window_, device_ };
+		phm::Window window_{ WIDTH, HEIGHT, "Triangle" };
+		phm::Device device_{ window_ };
+		phm::Renderer renderer_{ window_, device_ };
 
-		std::vector<Object> objects_; // TEMP
+		std::vector<phm::Object> objects_; // TEMP
 
 		void loadObjects(); // TEMP
 	};
@@ -39,4 +39,4 @@ namespace phm
 
 
 
-#endif /* PHM_APP_H */
+#endif /* SIM_APP_H */

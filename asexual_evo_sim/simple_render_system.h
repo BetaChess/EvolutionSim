@@ -8,24 +8,24 @@
 #include "phm_object.h"
 
 
-namespace phm
+namespace evo
 {
 	class SimpleRenderSystem
 	{
 
 	public:
-		SimpleRenderSystem(Device& device, VkRenderPass renderPass);
+		SimpleRenderSystem(phm::Device& device, VkRenderPass renderPass);
 		~SimpleRenderSystem();
 
 		SimpleRenderSystem(const SimpleRenderSystem&) = delete;
 		SimpleRenderSystem& operator=(const SimpleRenderSystem&) = delete;
 
-		void renderObjects(VkCommandBuffer commandBuffer, const std::vector<Object>& objects);
+		void renderObjects(VkCommandBuffer commandBuffer, const std::vector<phm::Object>& objects);
 
 	private:
-		Device& device_;
+		phm::Device& device_;
 
-		std::unique_ptr<Pipeline> pipeline_;
+		std::unique_ptr<phm::Pipeline> pipeline_;
 		VkPipelineLayout pipelineLayout_;
 
 		void createPipelineLayout();

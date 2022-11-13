@@ -10,7 +10,7 @@
 #include <iostream>
 
 
-namespace phm
+namespace evo
 {
 	struct SimplePushConstantData
 	{
@@ -18,7 +18,7 @@ namespace phm
 		alignas(16) glm::vec3 color;
 	};
 
-	SimpleRenderSystem::SimpleRenderSystem(Device& device, VkRenderPass renderPass)
+	SimpleRenderSystem::SimpleRenderSystem(phm::Device& device, VkRenderPass renderPass)
 		: device_(device)
 	{
 		createPipelineLayout();
@@ -60,11 +60,11 @@ namespace phm
 		);
 
 		phm::PipelineConfigInfo pipelineConfig{};
-		Pipeline::defaultPipelineConfigInfo(pipelineConfig);
+		phm::Pipeline::defaultPipelineConfigInfo(pipelineConfig);
 		pipelineConfig.renderPass = renderPass;
 		pipelineConfig.pipelineLayout = pipelineLayout_;
 
-		pipeline_ = std::make_unique<Pipeline>(
+		pipeline_ = std::make_unique<phm::Pipeline>(
 			device_,
 			"shaders/simple_shader.vert.spv",
 			"shaders/simple_shader.frag.spv",
@@ -73,7 +73,7 @@ namespace phm
 
 	}
 
-	void SimpleRenderSystem::renderObjects(VkCommandBuffer commandBuffer, const std::vector<Object>& objects)
+	void SimpleRenderSystem::renderObjects(VkCommandBuffer commandBuffer, const std::vector<phm::Object>& objects)
 	{
 		pipeline_->bind(commandBuffer);
 

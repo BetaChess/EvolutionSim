@@ -1,4 +1,4 @@
-#include "phm_app.h"
+#include "sim_app.h"
 
 #include "simple_render_system.h"
 
@@ -109,7 +109,7 @@ std::vector<phm::Model::Vertex> sierpinskiTriangle(std::array<phm::Model::Vertex
 	return retVec;
 }
 
-namespace phm
+namespace evo
 {
 	Application::Application()
 	{
@@ -146,7 +146,7 @@ namespace phm
 
 	void Application::loadObjects()
 	{
-		std::vector<Model::Vertex> vertices = sierpinskiTriangle(
+		std::vector<phm::Model::Vertex> vertices = sierpinskiTriangle(
 			{ { 
 				{{0.0f, -0.5f, 1.0f}, {1.0f, 0.0f, 0.0f}},
 				{{0.5f, 0.5f, 1.0f}, {0.0f, 1.0f, 0.0f}},
@@ -159,9 +159,9 @@ namespace phm
 			{{-0.5f, 0.5f, 1.0f}, {0.0f, 0.0f, 1.0f}}
 		};*/
 		
-		auto model = std::make_shared<Model>(device_, vertices);
+		auto model = std::make_shared<phm::Model>(device_, vertices);
 
-		Object obj{};
+		phm::Object obj{};
 		obj.model = model;
 		obj.color = { 0.7f, 0.8f,0.15f };
 		obj.transform.translation.x = 0.0f;
