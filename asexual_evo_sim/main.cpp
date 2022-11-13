@@ -1,3 +1,5 @@
+#include "pch.h"
+
 #include "sim_app.h"
 
 #include <iostream>
@@ -8,6 +10,8 @@
 
 int main()
 {
+	evo::Logger::init();
+
 	evo::Application app{ };
 
 	try

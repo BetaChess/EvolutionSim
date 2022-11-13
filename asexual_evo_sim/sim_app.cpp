@@ -1,3 +1,5 @@
+#include "pch.h"
+
 #include "sim_app.h"
 
 #include "simple_render_system.h"
@@ -112,12 +114,86 @@ std::vector<phm::Model::Vertex> sierpinskiTriangle(std::array<phm::Model::Vertex
 namespace evo
 {
 	Application::Application()
+		: imgui_context_(ImGui::CreateContext()), io_(ImGui::GetIO())
 	{
+		globalPool_ = phm::DescriptorPool::Builder(device_)
+			.setMaxSets(phm::Swapchain::MAX_FRAMES_IN_FLIGHT + 1)
+			.addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, phm::Swapchain::MAX_FRAMES_IN_FLIGHT)
+			.build();
+
+		// Initialize ImGui
+		ImGui::SetCurrentContext(imgui_context_);
+
+		io_.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
+		io_.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
+		//io_.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
+
+		ImGui::StyleColorsDark();
+
+		ImGuiStyle& style = ImGui::GetStyle();
+		if (io_.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		{
+			style.WindowRounding = 0.0f;
+			style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+		}
+
+		ImGui_ImplGlfw_InitForVulkan(window_.getGLFWWindow(), true);
+		ImGui_ImplVulkan_InitInfo init_info = {};
+		device_.populateImGui_initInfo(init_info);
+		renderer_.populateImGui_initInfo(init_info);
+		globalPool_->populateImGui_initInfo(init_info);
+		ImGui_ImplVulkan_Init(&init_info, renderer_.getSwapChainRenderPass());
+
+		// Upload Fonts
+		{
+			// Use any command queue
+			VkCommandPool command_pool = device_.getCommandPool();
+			VkCommandBuffer command_buffer = device_.beginSingleTimeCommands();
+
+			///*if (!vkResetCommandPool(device_.device(), command_pool, 0))
+			//{
+			//	throw std::runtime_error("Failed to reset command pool");
+			//}*/
+			//VkCommandBufferBeginInfo begin_info = {};
+			//begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+			//begin_info.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+			//if (!vkBeginCommandBuffer(command_buffer, &begin_info))
+			//{
+			//	throw std::runtime_error("Failed to begin recording command buffer for initializing fonts");
+			//}
+
+			ImGui_ImplVulkan_CreateFontsTexture(command_buffer);
+
+			device_.endSingleTimeCommands(command_buffer);
+
+			ImGui_ImplVulkan_DestroyFontUploadObjects();
+
+			//globalPool_->resetPool();
+		}
+
 		loadObjects();
 	}
 
 	Application::~Application()
 	{
+		ImGui_ImplVulkan_Shutdown();
+		ImGui_ImplGlfw_Shutdown();
+		ImGui::DestroyContext(imgui_context_);
+	}
+
+	void Application::render_ui()
+	{
+
+		ImGui::Begin("Info");
+
+		ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+		ImGui::Text("Frame Time: %.2f ms", 1000.0f / ImGui::GetIO().Framerate);
+		ImGui::SliderFloat2("Smooth Vase X and Y", &objects_[0].transform.translation.x, -5.0f, 5.0f);
+
+		ImGui::End();
+
+
+
 	}
 
 	void Application::run()
@@ -134,7 +210,27 @@ namespace evo
 			if (commandBuffer != nullptr)
 			{
 				renderer_.beginSwapChainRenderPass(commandBuffer);
+				// Render scene
 				simpleRenderSystem.renderObjects(commandBuffer, objects_);
+
+				// Render GUI
+				ImGui_ImplVulkan_NewFrame();
+				ImGui_ImplGlfw_NewFrame();
+				ImGui::NewFrame();
+
+				render_ui();
+
+				// End render
+				ImGui::Render();
+				auto drawData = ImGui::GetDrawData();
+				ImGui_ImplVulkan_RenderDrawData(drawData, commandBuffer);
+				// Update and Render additional Platform Windows
+				if (io_.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+				{
+					ImGui::UpdatePlatformWindows();
+					ImGui::RenderPlatformWindowsDefault();
+				}
+
 				renderer_.endSwapChainRenderPass(commandBuffer);
 				renderer_.endFrame();
 			}

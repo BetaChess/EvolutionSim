@@ -1,3 +1,5 @@
+#include "pch.h"
+
 #include "simple_render_system.h"
 
 #define GLM_FORCE_RADIANS

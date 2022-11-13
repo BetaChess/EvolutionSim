@@ -26,6 +26,7 @@ namespace phm
 		VkExtent2D getExtent() { return { static_cast<uint32_t>(width_), static_cast<uint32_t>(height_) }; }
 		inline bool wasWindowResized() { return frameBufferResized_; };
 		void resetWindowResizedFlag() { frameBufferResized_ = false; };
+		inline GLFWwindow* getGLFWWindow() const { return window_; };
 
 		void createWindowSurface(VkInstance instance, VkSurfaceKHR* surface);
 

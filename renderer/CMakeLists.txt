@@ -6,6 +6,9 @@ cmake_minimum_required (VERSION 3.8)
 project("renderer")
 
 set(SOURCES
+    ${IMGUI_SOURCES}
+    "phm_descriptor.cpp"
+    "phm_descriptor.h"
     "phm_model.h" 
     "phm_model.cpp" 
     "phm_window.h" 
@@ -26,6 +29,8 @@ set(SOURCES
 # Add source to this project's executable.
 add_library (${PROJECT_NAME} STATIC ${SOURCES})
 
+target_compile_definitions(${PROJECT_NAME} PUBLIC -DImTextureID=ImU64)
+
 set_target_properties(${PROJECT_NAME} 
     PROPERTIES
         CXX_STANDARD 17
@@ -34,12 +39,17 @@ set_target_properties(${PROJECT_NAME}
 )
 
 target_include_directories(${PROJECT_NAME} 
+    PUBLIC ../logger/
 	PUBLIC $ENV{VULKAN_SDK}/Include/ 
 	PUBLIC ../vendor/glfw/include/
     PUBLIC ../vendor/glm/
+    PUBLIC ../vendor/spdlog/include
+    PUBLIC ../vendor/imgui/
+	PUBLIC ../vendor/imgui/backends/
 )
 
 target_link_directories(${PROJECT_NAME}
+    PRIVATE ../logger/
 	PRIVATE ../vendor/glfw/src
     PRIVATE $ENV{VULKAN_SDK}/Lib
 )
@@ -47,4 +57,5 @@ target_link_directories(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
 	glfw
     vulkan-1
+    logger
 )

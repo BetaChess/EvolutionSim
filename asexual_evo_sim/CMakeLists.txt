@@ -6,31 +6,42 @@ cmake_minimum_required (VERSION 3.8)
 project("asexual_sim")
 
 set(SOURCES
+    ${IMGUI_SOURCES}
     "main.cpp"
     "sim_app.cpp"
 	"sim_app.h"
 	"simple_render_system.cpp"
     "simple_render_system.h"
-)
+    "pch.h")
 
 # Add source to this project's executable.
 add_executable (${PROJECT_NAME} ${SOURCES})
 
+if (${CXXVER} GREATER_EQUAL 20) 
+    add_compile_definitions(CXXGT20=${CXXVER})
+endif()
+
+target_compile_definitions(${PROJECT_NAME} PUBLIC -DImTextureID=ImU64)
+
 set_target_properties(${PROJECT_NAME} 
     PROPERTIES
-        CXX_STANDARD 17
+        CXX_STANDARD ${CXXVER}
         CXX_STANDARD_REQUIRED YES
         CXX_EXTENSIONS NO
 )
 
 target_include_directories(${PROJECT_NAME} 
+    PUBLIC ../logger/
 	PUBLIC $ENV{VULKAN_SDK}/Include/ 
 	PUBLIC ../vendor/glfw/include/
     PUBLIC ../vendor/glm/
 	PUBLIC ../renderer/
+    PUBLIC ../vendor/imgui/
+	PUBLIC ../vendor/imgui/backends/
 )
 
 target_link_directories(${PROJECT_NAME}
+    PRIVATE ../logger/
 	PRIVATE ../vendor/glfw/src
     PRIVATE $ENV{VULKAN_SDK}/Lib
 	PRIVATE ../renderer/
@@ -40,6 +51,12 @@ target_link_libraries(${PROJECT_NAME}
 	glfw
     vulkan-1
 	renderer
+    logger
+)
+
+# Precompiled header
+target_precompile_headers(${PROJECT_NAME}
+    PUBLIC "pch.h"
 )
 
 # TODO: Add tests and install targets if needed.
